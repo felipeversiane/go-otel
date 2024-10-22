@@ -7,6 +7,7 @@ import (
 
 	"log/slog"
 
+	"github.com/exaring/otelpgx"
 	"github.com/felipeversiane/go-otel/internal/infra/config"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -35,6 +36,7 @@ func NewDatabaseConnection(ctx context.Context, config config.DatabaseConfig) Da
 			slog.Error("failed to parse database config", slog.String("dsn", dsn), slog.Any("error", parseErr))
 			return
 		}
+		poolConfig.ConnConfig.Tracer = otelpgx.NewTracer()
 
 		pool, poolErr := pgxpool.NewWithConfig(ctx, poolConfig)
 		if poolErr != nil {

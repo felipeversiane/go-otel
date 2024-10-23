@@ -5,6 +5,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/felipeversiane/go-otel/internal/infra/config"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
@@ -14,26 +15,19 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.21.0"
 )
 
-type Otel struct {
-	config OtelConfig
+type observer struct {
+	config config.ObservabilityConfig
 }
 
-type OtelConfig struct {
-	ServiceName              string
-	ServiceVersion           string
-	OtelExporterOtlpEndpoint string
-	OtelExporterOtlpInsecure bool
-}
-
-type OtelInterface interface {
+type ObserverInterface interface {
 	SetupOtel(context.Context) (shutdown func(context.Context) error, err error)
 }
 
-func NewOtel(config OtelConfig) OtelInterface {
-	return Otel{config}
+func NewObserver(config config.ObservabilityConfig) ObserverInterface {
+	return observer{config}
 }
 
-func (o Otel) SetupOtel(ctx context.Context) (shutdown func(context.Context) error, err error) {
+func (o observer) SetupOtel(ctx context.Context) (shutdown func(context.Context) error, err error) {
 	var shutdownFuncs []func(context.Context) error
 
 	// shutdown calls cleanup functions registered via shutdownFuncs.
@@ -81,7 +75,7 @@ func (o Otel) SetupOtel(ctx context.Context) (shutdown func(context.Context) err
 	return shutdown, err
 }
 
-func newResource(config OtelConfig) (*resource.Resource, error) {
+func newResource(config config.ObservabilityConfig) (*resource.Resource, error) {
 	return resource.Merge(resource.Default(),
 		resource.NewWithAttributes(semconv.SchemaURL,
 			semconv.ServiceName(config.ServiceName),
@@ -89,7 +83,7 @@ func newResource(config OtelConfig) (*resource.Resource, error) {
 		))
 }
 
-func newTraceProvider(ctx context.Context, config OtelConfig, res *resource.Resource) (*trace.TracerProvider, error) {
+func newTraceProvider(ctx context.Context, config config.ObservabilityConfig, res *resource.Resource) (*trace.TracerProvider, error) {
 	options := []otlptracegrpc.Option{}
 
 	if config.OtelExporterOtlpEndpoint != "" {
@@ -114,7 +108,7 @@ func newTraceProvider(ctx context.Context, config OtelConfig, res *resource.Reso
 	return traceProvider, nil
 }
 
-func newMeterProvider(ctx context.Context, config OtelConfig, res *resource.Resource) (*metric.MeterProvider, error) {
+func newMeterProvider(ctx context.Context, config config.ObservabilityConfig, res *resource.Resource) (*metric.MeterProvider, error) {
 	options := []otlpmetricgrpc.Option{}
 
 	if config.OtelExporterOtlpEndpoint != "" {

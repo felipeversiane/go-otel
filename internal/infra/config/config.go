@@ -11,15 +11,17 @@ var (
 )
 
 type Config struct {
-	Database     DatabaseConfig
-	Server       ServerConfig
-	Log          LogConfig
+	Database      DatabaseConfig
+	Server        ServerConfig
+	Log           LogConfig
+	Observability ObservabilityConfig
 }
 
 type ConfigInterface interface {
 	GetDatabaseConfig() DatabaseConfig
 	GetServerConfig() ServerConfig
 	GetLogConfig() LogConfig
+	GetObservabilityConfig() ObservabilityConfig
 }
 
 type DatabaseConfig struct {
@@ -38,6 +40,13 @@ type LogConfig struct {
 	Level string
 }
 
+type ObservabilityConfig struct {
+	ServiceName              string
+	ServiceVersion           string
+	OtelExporterOtlpEndpoint string
+	OtelExporterOtlpInsecure bool
+}
+
 func NewConfig() ConfigInterface {
 	var cfg *Config
 	once.Do(func() {
@@ -54,6 +63,12 @@ func NewConfig() ConfigInterface {
 			},
 			Log: LogConfig{
 				Level: getEnvOrDie("LOG_LEVEL"),
+			},
+			Observability: ObservabilityConfig{
+				ServiceName:              getEnvOrDie("OTEL_SERVICE_NAME"),
+				ServiceVersion:           getEnvOrDie("OTEL_SERVICE_VERSION"),
+				OtelExporterOtlpEndpoint: getEnvOrDie("OTEL_EXPORTER_ENDPOINT"),
+				OtelExporterOtlpInsecure: true,
 			},
 		}
 	})
@@ -80,3 +95,6 @@ func (c *Config) GetLogConfig() LogConfig {
 	return c.Log
 }
 
+func (c *Config) GetObservabilityConfig() ObservabilityConfig {
+	return c.Observability
+}

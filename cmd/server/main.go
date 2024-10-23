@@ -17,13 +17,8 @@ func main() {
 	logger.Configure()
 
 	ctx := context.Background()
-	otel := observability.NewOtel(observability.OtelConfig{
-		ServiceName:              "go-otel",
-		ServiceVersion:           "0.0.1",
-		OtelExporterOtlpEndpoint: "otel-collector:4317",
-		OtelExporterOtlpInsecure: true,
-	})
-	otel.SetupOtel(ctx)
+	observer := observability.NewObserver(cfg.GetObservabilityConfig())
+	observer.SetupOtel(ctx)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()

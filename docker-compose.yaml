@@ -9,20 +9,26 @@ services:
       dockerfile: build/database/Dockerfile
     volumes:
       - local_postgres_data:/var/lib/postgresql/data
+      - ./conf/postgres/:/docker-entrypoint-initdb.d/
     ports:
-       - "${POSTGRES_PORT}:${POSTGRES_PORT}"
+      - "5432:5432"
     networks:
       - golangnetwork
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -q -d ${POSTGRES_DB} -U ${POSTGRES_USER} || exit 1"]
+      test: ["CMD-SHELL", "pg_isready -q -d postgres -U postgres || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 3
       start_period: 20s
+    command:
+      [
+        "postgres",
+        "-c","config_file=/docker-entrypoint-initdb.d/postgres.conf",
+      ]
 
   migrate:
     image: migrate/migrate
-    container_name: mg02
+    container_name: mg03
     volumes:
       - ./migrations:/migrations
     command: [
@@ -43,7 +49,7 @@ services:
       context: .
       dockerfile: build/server/Dockerfile
     image: app
-    container_name: go02
+    container_name: go03
     restart: unless-stopped
     depends_on:
       - migrate
@@ -54,7 +60,7 @@ services:
 
   nginx:
     image: nginx:alpine
-    container_name: nx02
+    container_name: nx03
     ports:
       - "8000:8000"
     volumes:
@@ -65,6 +71,7 @@ services:
       - golangnetwork
     
   jaeger-all-in-one:
+    container_name: jaeger03
     image: jaegertracing/all-in-one:latest
     ports:
       - "5775:5775/udp"
@@ -77,6 +84,7 @@ services:
       - "14250:14250"
 
   otel-collector:
+    container_name: collector03
     image: otel/opentelemetry-collector-contrib:0.53.0
     command: ["--config=/conf/collector-config.yaml"]
     volumes:
@@ -92,6 +100,7 @@ services:
       - jaeger-all-in-one
 
   prometheus:
+    container_name: prometheus03
     image: prom/prometheus:latest
     restart: always
     volumes:

@@ -86,9 +86,9 @@ services:
   otel-collector:
     container_name: collector03
     image: otel/opentelemetry-collector-contrib:0.53.0
-    command: ["--config=/conf/collector-config.yaml"]
+    command: ["--config=/conf/collector/collector.conf"]
     volumes:
-      - ./collector-config.yaml:/conf/collector-config.yaml
+      - ./conf/collector/collector.conf:/conf/collector/collector.conf
     ports:
       - "1888:1888"   # pprof extension
       - "8888:8888"   # Prometheus metrics exposed by the collector
@@ -104,7 +104,7 @@ services:
     image: prom/prometheus:latest
     restart: always
     volumes:
-      - ./prometheus.yaml:/etc/prometheus/prometheus.yml
+      - ./conf/prometheus/prometheus.conf:/etc/prometheus/prometheus.conf
     ports:
       - "9090:9090"
 

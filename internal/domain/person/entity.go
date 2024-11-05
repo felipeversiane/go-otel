@@ -17,7 +17,7 @@ type PersonResponse struct {
 	Stack     []string `json:"stack"`
 }
 
-func ConvertRequestToDomain(req *PersonRequest) *domain.Person {
+func ConvertRequestToDomain(req PersonRequest) *domain.Person {
 	return domain.NewPerson(req.Nickname, req.Name, req.Birthdate, req.Stack)
 }
 

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 
+	"github.com/felipeversiane/go-otel/internal/domain/person"
 	"github.com/felipeversiane/go-otel/internal/infra/config"
 	"github.com/felipeversiane/go-otel/internal/infra/config/log"
 	"github.com/felipeversiane/go-otel/internal/infra/services/database"
@@ -35,6 +36,10 @@ func NewServer(
 
 func (s *server) SetupRouter() {
 	s.router.Use(gin.Recovery())
+	v1 := s.router.Group("/api/v1")
+	{
+		person.PersonRouter(v1, s.database)
+	}
 	s.router.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"status": "healthy",

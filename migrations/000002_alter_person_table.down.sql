@@ -1,0 +1,5 @@
+ALTER TABLE person
+DROP COLUMN created_at,
+
+ALTER TABLE person
+ADD COLUMN birthdate DATE NOT NULL;
